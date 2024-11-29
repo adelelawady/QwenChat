@@ -5,16 +5,20 @@ import ChatSidebar from './ChatSidebar';
 import { PanelLeftIcon, PanelRightIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-interface Chat {
+interface ChatHistoryItem {
   id: string;
   title: string;
   messages: Message[];
+  created_at: string;
+  updated_at: string;
 }
 
 export const Chat = () => {
@@ -22,47 +26,94 @@ export const Chat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    wsRef.current = new WebSocket('ws://localhost:8000/ws/chat');
+  // Fetch chat history
+  const { data: chatHistory = [] } = useQuery<ChatHistoryItem[]>({
+    queryKey: ['chats'],
+    queryFn: async () => {
+      const response = await axios.get('http://localhost:8000/api/chats');
+      return response.data;
+    }
+  });
 
-    wsRef.current.onopen = () => {
-      setIsConnected(true);
-    };
+  // Create new chat mutation
+  const createChatMutation = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post('http://localhost:8000/api/chats');
+      return response.data;
+    },
+    onSuccess: (newChat) => {
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      setCurrentChatId(newChat.id);
+      setMessages([]);
+    }
+  });
 
-    wsRef.current.onmessage = (event) => {
-      const data = event.data;
-      
-      if (data === '[END]') {
-        setIsTyping(false);
-        return;
+  // Delete chat mutation
+  const deleteChatMutation = useMutation({
+    mutationFn: async (chatId: string) => {
+      await axios.delete(`http://localhost:8000/api/chats/${chatId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+      if (chatHistory.length > 0) {
+        setCurrentChatId(chatHistory[0].id);
+      } else {
+        handleNewChat();
       }
+    }
+  });
 
-      setMessages(prev => {
-        const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
+  const [currentChatId, setCurrentChatId] = useState<string | null>(
+    chatHistory.length > 0 ? chatHistory[0].id : null
+  );
 
-        if (lastMessage && lastMessage.role === 'assistant') {
-          lastMessage.content += data;
-          return [...newMessages];
-        } else {
-          return [...newMessages, { role: 'assistant', content: data }];
-        }
+  // Load chat messages when chat is selected
+  useEffect(() => {
+    if (currentChatId) {
+      // Load chat messages
+      axios.get(`http://localhost:8000/api/chats/${currentChatId}`).then((response) => {
+        const chat = response.data;
+        setMessages(chat.messages);
       });
-    };
 
-    wsRef.current.onclose = () => {
-      setIsConnected(false);
-    };
-
-    return () => {
+      // Setup WebSocket connection
       wsRef.current?.close();
-    };
-  }, []);
+      wsRef.current = new WebSocket(`ws://localhost:8000/ws/chat/${currentChatId}`);
+
+      wsRef.current.onopen = () => {
+        setIsConnected(true);
+      };
+
+      wsRef.current.onmessage = (event) => {
+        const data = event.data;
+        
+        if (data === '[END]') {
+          setIsTyping(false);
+          return;
+        }
+
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.content += data;
+            return [...newMessages];
+          } else {
+            return [...newMessages, { role: 'assistant', content: data }];
+          }
+        });
+      };
+
+      wsRef.current.onclose = () => {
+        setIsConnected(false);
+      };
+    }
+  }, [currentChatId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -77,14 +128,17 @@ export const Chat = () => {
   };
 
   const handleNewChat = () => {
-    const newChat = {
-      id: Date.now().toString(),
-      title: 'New Chat',
-      messages: []
-    };
-    setChats(prev => [...prev, newChat]);
-    setCurrentChatId(newChat.id);
-    setMessages([]);
+    createChatMutation.mutate();
+  };
+
+  const handleDeleteChat = (chatId: string) => {
+    deleteChatMutation.mutate(chatId);
+  };
+
+  // Handle chat selection
+  const handleSelectChat = (chatId: string) => {
+    setCurrentChatId(chatId);
+    setMessages([]); // Clear messages until new ones load
   };
 
   return (
@@ -98,9 +152,10 @@ export const Chat = () => {
       >
         <div className="h-full overflow-hidden">
           <ChatSidebar
-            chats={chats}
-            onSelectChat={setCurrentChatId}
+            chats={chatHistory}
+            onSelectChat={handleSelectChat}
             onNewChat={handleNewChat}
+            onDeleteChat={handleDeleteChat}
             currentChatId={currentChatId}
           />
         </div>
