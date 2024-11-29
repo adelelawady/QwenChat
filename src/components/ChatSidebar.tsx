@@ -21,8 +21,8 @@ const ChatSidebar = ({ chats, onSelectChat, onNewChat }: ChatSidebarProps) => {
       <div className="p-4">
         <Button
           onClick={onNewChat}
-          className="w-full justify-start gap-2"
-          variant="outline"
+          className="w-full justify-start gap-2 bg-chat-accent hover:bg-chat-accent/90 text-white"
+          variant="default"
         >
           <Plus className="w-4 h-4" />
           New Chat
@@ -34,7 +34,12 @@ const ChatSidebar = ({ chats, onSelectChat, onNewChat }: ChatSidebarProps) => {
             <Button
               key={chat.id}
               variant={chat.active ? "secondary" : "ghost"}
-              className="w-full justify-start gap-2"
+              className={cn(
+                "w-full justify-start gap-2 transition-colors",
+                chat.active
+                  ? "bg-chat-hover text-white"
+                  : "text-gray-300 hover:bg-chat-hover/50"
+              )}
               onClick={() => onSelectChat(chat.id)}
             >
               <MessageSquare className="w-4 h-4" />

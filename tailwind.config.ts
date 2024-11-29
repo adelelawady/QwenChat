@@ -53,13 +53,17 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         chat: {
-          primary: "#2D3748",
-          secondary: "#4A5568",
-          accent: "#63B3ED",
-          background: "#1A202C",
-          sidebar: "#2D3748",
-          hover: "#4A5568",
-          border: "#4A5568",
+          primary: "#1A1F2C",
+          secondary: "#2D3748",
+          accent: "#8B5CF6",
+          background: "#0F172A",
+          sidebar: "#1E293B",
+          hover: "#334155",
+          border: "#475569",
+          message: {
+            user: "#1E293B",
+            bot: "#1A1F2C",
+          }
         },
       },
       keyframes: {
@@ -70,10 +74,20 @@ export default {
         blink: {
           "50%": { borderColor: "transparent" },
         },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       animation: {
         typing: "typing 1.5s steps(40, end)",
         blink: "blink 1s step-end infinite",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
