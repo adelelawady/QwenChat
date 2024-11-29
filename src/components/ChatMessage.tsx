@@ -1,7 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { Card } from "./ui/card";
-import { User, Bot } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   content: string;
@@ -13,38 +12,30 @@ const ChatMessage = ({ content, isUser, isTyping = false }: ChatMessageProps) =>
   return (
     <div
       className={cn(
-        "flex gap-4 p-4 transition-colors duration-200",
-        isUser ? "bg-chat-message-user" : "bg-chat-message-bot"
+        "mb-4 flex",
+        isUser ? "justify-end" : "justify-start"
       )}
     >
       <div
         className={cn(
-          "w-8 h-8 rounded-full flex items-center justify-center",
-          isUser ? "bg-chat-accent" : "bg-primary"
-        )}
-      >
-        {isUser ? (
-          <User className="w-5 h-5 text-white" />
-        ) : (
-          <Bot className="w-5 h-5 text-white" />
-        )}
-      </div>
-      <Card
-        className={cn(
-          "flex-1 p-4 glass border-chat-border",
-          isTyping && "animate-pulse"
+          "rounded-lg px-4 py-2 max-w-[80%]",
+          isUser
+            ? "bg-chat-message-user text-white"
+            : "bg-chat-message-bot text-white"
         )}
       >
         {isTyping ? (
-          <div className="flex gap-1">
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce delay-100" />
-            <div className="w-2 h-2 rounded-full bg-primary animate-bounce delay-200" />
+          <div className="flex space-x-2">
+            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
           </div>
         ) : (
-          <p className="text-foreground whitespace-pre-wrap">{content}</p>
+          <ReactMarkdown className="prose prose-invert max-w-none">
+            {content}
+          </ReactMarkdown>
         )}
-      </Card>
+      </div>
     </div>
   );
 };

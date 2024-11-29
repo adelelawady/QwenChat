@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import ChatMessage from "@/components/ChatMessage";
 import ChatInput from "@/components/ChatInput";
 import ChatSidebar from "@/components/ChatSidebar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/components/ui/use-toast";
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -18,22 +19,35 @@ interface Chat {
   messages: Message[];
 }
 
-const Index = () => {
+// Extract chat logic to reduce file size
+const useChat = () => {
   const [chats, setChats] = useState<Chat[]>([
     { id: "1", title: "New Chat", messages: [] },
   ]);
   const [currentChatId, setCurrentChatId] = useState("1");
   const [isTyping, setIsTyping] = useState(false);
+
+  return {
+    chats,
+    setChats,
+    currentChatId,
+    setCurrentChatId,
+    isTyping,
+    setIsTyping,
+  };
+};
+
+const Index = () => {
+  const { chats, setChats, currentChatId, setCurrentChatId, isTyping, setIsTyping } = useChat();
   const { toast } = useToast();
 
   const currentChat = chats.find((chat) => chat.id === currentChatId);
 
   const simulateResponse = async (message: string) => {
     setIsTyping(true);
-    // Simulate typing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
-    const response = `I received your message: "${message}"\nHere's a simulated response that will be typed out character by character to create a realistic effect.`;
+    const response = `I received your message: "${message}"\n\nHere's a **markdown** formatted response:\n- Point 1\n- Point 2\n\n*Italic* and **bold** text are supported.`;
     
     setChats((prev) =>
       prev.map((chat) =>
