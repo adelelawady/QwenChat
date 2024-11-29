@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { MessageSquare, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Chat {
   id: string;
