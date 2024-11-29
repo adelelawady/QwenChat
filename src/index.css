@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --background: 235 25% 9%;
     --foreground: 0 0% 98%;
     --card: 235 25% 9%;
@@ -33,12 +34,14 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1, "ss03" 1, "ss04" 1, "ss05" 1, "ss06" 1;
   }
 }
 
 @layer components {
   .prose {
     @apply prose-headings:text-zinc-100 
+    prose-headings:font-semibold
     prose-p:text-zinc-300 
     prose-strong:text-zinc-200 
     prose-ul:text-zinc-300 

@@ -13,6 +13,10 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
+        mono: ["JetBrains Mono", ...fontFamily.mono],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,12 +54,13 @@ module.exports = {
               borderWidth: '0',
               borderRadius: '0',
               padding: '0',
+              fontFamily: 'JetBrains Mono',
             },
+            code: {
+              fontFamily: 'JetBrains Mono',
+            }
           }
         }
-      },
-      fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
       },
     },
   },
