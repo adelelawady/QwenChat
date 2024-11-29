@@ -20,24 +20,27 @@ const ChatInput = ({ onSend, disabled }: ChatInputProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t border-chat-border bg-chat-message-user/50">
-      <div className="flex gap-2 max-w-4xl mx-auto">
-        <Input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 bg-chat-message-bot border-chat-border focus:ring-chat-accent"
-          disabled={disabled}
-        />
-        <Button 
-          type="submit" 
-          disabled={disabled || !message.trim()}
-          className="bg-chat-accent hover:bg-chat-accent/90"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
+    <div className="bg-[#343541] p-4">
+      <div className="max-w-3xl mx-auto">
+        <form onSubmit={handleSubmit} className="relative">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Send a message..."
+            className="w-full pr-12 bg-[#40414F] border-zinc-700 focus-visible:ring-zinc-600 text-white"
+            disabled={disabled}
+          />
+          <Button 
+            type="submit" 
+            size="icon"
+            disabled={disabled || !message.trim()}
+            className="absolute right-1.5 top-1.5 h-8 w-8 bg-[#11A37F] hover:bg-[#11A37F]/90 disabled:bg-zinc-700"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </form>
       </div>
-    </form>
+    </div>
   );
 };
 
