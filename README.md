@@ -2,6 +2,9 @@
 
 A real-time chat application that allows users to interact with Qwen-Coder AI model, featuring file upload capabilities and chat history. Built with React, FastAPI, and Ollama.
 
+![Screenshot 2024-11-30 005033](https://github.com/user-attachments/assets/295417dd-d4e1-414a-82dc-a7fbaf11be44)
+
+
 ## Features
 
 - Real-time chat with Qwen-Coder
