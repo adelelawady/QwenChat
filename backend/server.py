@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.messages import HumanMessage, AIMessage
 import asyncio
@@ -6,6 +6,11 @@ from chat_with_qwen import create_chat_chain
 from chat_history import ChatHistory
 from typing import Dict
 import json
+import os
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+import mimetypes
+import base64
 
 app = FastAPI()
 
@@ -30,6 +35,13 @@ chat_history = ChatHistory()
 
 # Store active connections
 connections: Dict[str, WebSocket] = {}
+
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+# Mount the uploads directory for static file serving
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # REST endpoints for chat history
 @app.get("/api/chats")
@@ -73,8 +85,28 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: str):
             # Receive message from client
             message = await websocket.receive_text()
             
+            # Check if this is a file analysis request
+            is_file_message = "I'm sending you a file:" in message
+            
             # Add user message to history
             chat_history.add_message(chat_id, "user", message)
+            
+            # If it's a file message, add analysis instructions
+            if is_file_message:
+                # Extract file content from the message
+                file_content_start = message.find("File content:")
+                if file_content_start != -1:
+                    file_content = message[file_content_start:]
+                    message = f"""Please analyze this file:
+                    {message}
+                    
+                    Provide a detailed analysis including:
+                    1. File type and purpose
+                    2. Code structure and functionality (if it's code)
+                    3. Key points and important information
+                    4. Potential improvements or issues
+                    5. Any relevant suggestions
+                    """
             
             # Get response
             response_text = ""
@@ -122,3 +154,37 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: str):
     finally:
         if chat_id in connections:
             del connections[chat_id] 
+
+
+# Update the upload endpoint to handle file content
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        file_path = UPLOAD_DIR / file.filename
+        content = await file.read()
+        
+        # Save the file
+        with open(file_path, "wb") as f:
+            f.write(content)
+            
+        # Read file content based on type
+        mime_type = mimetypes.guess_type(file.filename)[0]
+        file_content = ""
+        
+        if mime_type and mime_type.startswith('text/'):
+            file_content = content.decode('utf-8')
+        elif mime_type and mime_type.startswith('image/'):
+            file_content = f"[Image file: {file.filename}]"
+        else:
+            file_content = f"[File: {file.filename}]"
+        
+        # Return file info and content
+        return {
+            "filename": file.filename,
+            "size": len(content),
+            "path": f"/uploads/{file.filename}",
+            "content": file_content,
+            "type": mime_type or "application/octet-stream"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) 

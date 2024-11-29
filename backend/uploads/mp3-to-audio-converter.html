@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 to WAV Converter</title>
+    <style>
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        p {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        a {
+            display: inline-block;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        a:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MP3 to WAV Converter with Pyodide</h1>
+        <input type="file" id="fileInput" accept=".mp3">
+        <button id="convertButton">Convert to WAV</button>
+        <p id="status"></p>
+        <a id="downloadLink" style="display: none;">Download Converted WAV</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.3"></script>
+     <script src="https://cdn.jsdelivr.net/npm/pyodide@0.22.1/pyodide.js"></script>
+    <script>
+        async function loadPyodide() {
+            await window.pyodide.loadPackage('ffmpeg');
+            console.log('Pyodide loaded with FFmpeg support.');
+        }
+
+        async function convertAudio() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            const downloadLink = document.getElementById('downloadLink');
+
+            if (fileInput.files.length === 0) {
+                status.textContent = 'Please select an MP3 file.';
+                return;
+            }
+
+            status.textContent = 'Converting...';
+
+            try {
+                // Load Pyodide with FFmpeg support
+                await loadPyodide();
+
+                // Use FFmpeg to convert the selected MP3 file to WAV
+                const inputFilePath = fileInput.files[0].path;
+                const outputFilePath = `${inputFilePath.replace('.mp3', '.wav')}`;
+                const command = `ffmpeg -i ${inputFilePath} ${outputFilePath}`;
+
+                await window.pyodide.runPythonAsync(command);
+
+                status.textContent = 'Conversion successful!';
+
+                // Display the download link
+                downloadLink.href = outputFilePath;
+                downloadLink.download = fileInput.files[0].name.replace('.mp3', '.wav');
+                downloadLink.style.display = 'block';
+            } catch (error) {
+                status.textContent = `Error converting file: ${error.message}`;
+            }
+        }
+
+        document.getElementById('convertButton').addEventListener('click', convertAudio);
+    </script>
+</body>
+</html>

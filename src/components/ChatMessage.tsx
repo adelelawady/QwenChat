@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Components } from 'react-markdown';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, FileText } from 'lucide-react';
 import { Button } from "./ui/button";
 import { useState } from "react";
 
@@ -21,6 +21,22 @@ const ChatMessage = ({ content, isUser, isTyping = false }: ChatMessageProps) =>
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  // Check if the message contains a file upload
+  const isFileUpload = content.includes("I'm sending you a file:");
+  
+  // Get file name for the header
+  const getFileName = (content: string) => {
+    if (!isFileUpload) return "";
+    const filenameLine = content.split('\n').find(line => line.includes("I'm sending you a file:"));
+    return filenameLine?.replace("I'm sending you a file:", "").trim() || "";
+  };
+
+  // Get user message part
+  const getUserMessage = (content: string) => {
+    if (!isFileUpload) return content;
+    return content.split("\n\nI'm sending you a file:")[0];
   };
 
   const markdownComponents: Components = {
@@ -83,14 +99,6 @@ const ChatMessage = ({ content, isUser, isTyping = false }: ChatMessageProps) =>
     ),
   };
 
-  // Clean up extra spaces and newlines while preserving code blocks
-  const formatContent = (text: string) => {
-    return text
-      .replace(/\\n/g, '\n')
-      .replace(/\n\s*\n\s*\n/g, '\n\n') // Replace multiple newlines with double newline
-      .trim();
-  };
-
   return (
     <div className={cn(
       "border-b border-zinc-700/50",
@@ -112,12 +120,32 @@ const ChatMessage = ({ content, isUser, isTyping = false }: ChatMessageProps) =>
                 <div className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"></div>
               </div>
             ) : (
-              <ReactMarkdown
-                className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0"
-                components={markdownComponents}
-              >
-                {formatContent(content)}
-              </ReactMarkdown>
+              <>
+                {isUser ? (
+                  <div className="space-y-2">
+                    {getUserMessage(content) && (
+                      <div className="text-white">
+                        {getUserMessage(content)}
+                      </div>
+                    )}
+                    {isFileUpload && (
+                      <div className="flex items-center gap-2 text-zinc-400 bg-zinc-800/50 p-2 rounded-md">
+                        <FileText className="w-4 h-4" />
+                        <span className="text-sm">
+                          File uploaded: {getFileName(content)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <ReactMarkdown
+                    className="prose prose-invert max-w-none prose-p:leading-relaxed prose-pre:p-0"
+                    components={markdownComponents}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                )}
+              </>
             )}
           </div>
         </div>

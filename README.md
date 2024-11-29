@@ -1,69 +1,214 @@
-# Welcome to your Lovable project
+# Chat with Qwen-Coder
 
-## Project info
+A real-time chat application that allows users to interact with Qwen-Coder AI model, featuring file upload capabilities and chat history. Built with React, FastAPI, and Ollama.
 
-**URL**: https://lovable.dev/projects/76406eba-37e5-4b89-8a67-37f05c40499e
+## Features
 
-## How can I edit this code?
+- Real-time chat with Qwen-Coder
+- File upload and analysis
+- Chat history persistence
+- Code syntax highlighting
+- Markdown support
+- File content analysis
+- Modern UI inspired by ChatGPT
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js (v16 or higher)
+- Python (3.8 or higher)
+- Ollama installed on your system
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/76406eba-37e5-4b89-8a67-37f05c40499e) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Installing Ollama and Qwen-Coder
 
-**Use your preferred IDE**
+1. Install Ollama:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+    **On macOS or Linux:**
+    ```bash
+    curl -fsSL https://ollama.com/install.sh | sh
+    ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+    **On Windows:**
+    - Download and install from [Ollama Windows](https://ollama.com/download/windows)
+    - Make sure Windows Subsystem for Linux (WSL) is installed
+    - Follow the installation wizard instructions
 
-Follow these steps:
+2. Start Ollama service:
+    ```bash
+    ollama serve
+    ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Pull the Qwen-Coder model (in a new terminal):
+    ```bash
+    # Pull the smallest version (recommended for most users)
+    ollama pull qwen2.5-coder:0.5b
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+    The download might take a few minutes depending on your internet connection. You'll see a progress bar like this:
+    ```
+    pulling manifest... done
+    pulling 6c91e4... done
+    pulling 4c915e... done
+    verifying sha256 digest... done
+    ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+4. Test the model installation:
+    ```bash
+    ollama run qwen2.5-coder:0.5b "Hello, are you ready?"
+    ```
+    You should get a response from the model.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+**Troubleshooting Ollama Installation:**
+
+- If you get permission errors on Linux:
+    ```bash
+    sudo chmod +x /usr/local/bin/ollama
+    ```
+
+- If Ollama service fails to start:
+    ```bash
+    # Check if the service is running
+    ps aux | grep ollama
+    
+    # Restart the service
+    killall ollama
+    ollama serve
+    ```
+
+
+## Installation
+
+### Backend Setup
+
+1. Create a Python virtual environment:
+
+    ```
+    python -m venv venv
+    source venv/bin/activate # On Windows: venv\Scripts\activate
+    ```
+
+2. Install Python dependencies:
+    ```
+    pip install fastapi uvicorn langchain langchain-community python-multipart
+    ```
+
+3. Create required directories:
+    ```
+    mkdir uploads
+    ```
+
+### Frontend Setup
+
+1. Install Node.js dependencies:
+    ```
+    npm install
+    ```
+
+Required dependencies include:
+- @tanstack/react-query
+- axios
+- react-markdown
+- react-syntax-highlighter
+- lucide-react
+- tailwindcss
+- @tailwindcss/typography
+- shadcn/ui components
+
+## Running the Application
+
+1. Start Ollama (if not already running):
+    ```
+    ollama start
+    ```
+
+2. Start the backend server (from the project root):
+    ```
+    uvicorn backend.server:app --reload
+    ```
+
+3. Start the frontend development server (in a new terminal):
+    ```
+    npm run dev
+    ```
+
+4. Open your browser and navigate to:
+    ```
+    http://localhost:5173
+    ```
+
+
+## Project Structure
+
+```
+    project/
+├── backend/
+│ ├── init.py
+│ ├── server.py # FastAPI server
+│ ├── chat_with_qwen.py # Qwen integration
+│ └── chat_history.py # Chat history management
+├── src/
+│ ├── components/ # React components
+│ │ ├── Chat.tsx
+│ │ ├── ChatInput.tsx
+│ │ ├── ChatMessage.tsx
+│ │ ├── ChatSidebar.tsx
+│ │ └── FileUpload.tsx
+│ └── pages/
+│ └── Index.tsx
+└── uploads/ # Uploaded files directory
 ```
 
-**Edit a file directly in GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Qwen-Coder Models
 
-**Use GitHub Codespaces**
+Available models through Ollama:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
-## What technologies are used for this project?
+| Model | Size | RAM Required | Performance |
+|-------|------|--------------|-------------|
+| qwen2.5-coder:0.5b | 500MB | 2GB | Fast, good for basic tasks |
+| qwen2.5-coder:1.8b | 1.8GB | 4GB | Better comprehension |
+| qwen2.5-coder:3b | 3GB | 8GB | Best quality, slower |
 
-This project is built with .
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+To change models, update the model name in `backend/chat_with_qwen.py`:
+```
+model = Ollama(
+    model="qwen2.5-coder:0.5b",
+    base_url="http://localhost:11434",
+    temperature=0.7,  # Add some creativity for analysis
+)
+```
 
-## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/76406eba-37e5-4b89-8a67-37f05c40499e) and click on Share -> Publish.
+## Features in Detail
 
-## I want to use a custom domain - is that possible?
+### File Upload
+- Supports text files, code files, and other formats
+- Automatic content extraction
+- File content analysis by Qwen-Coder
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Chat Interface
+- Real-time message streaming
+- Code syntax highlighting
+- Markdown rendering
+- File upload indicator
+- Typing indicators
+
+### Chat History
+- Persistent chat storage
+- Multiple chat sessions
+- Chat title generation
+- Delete chat functionality
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
