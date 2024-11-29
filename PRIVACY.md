@@ -51,4 +51,3 @@ You have the right to:
 
 For any questions about this Privacy Policy, please contact:
 Adel Elawady
-[Contact Information] 

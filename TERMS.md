@@ -46,4 +46,3 @@ We are not liable for:
 
 For questions about these Terms, contact:
 Adel Elawady
-[Contact Information] 
